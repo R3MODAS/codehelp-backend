@@ -31,3 +31,7 @@ app.use("/products", productRouter) ```
 
 - `MVC` model stands for Model-View-Controller is a pattern used to separate the app's concerns into 3 interconnected components. `Models` contains the data we defined and structured, `Controllers` contains all the functionality/request handlers that handles all the requests/response and do operations accordingly, Views contains the UI of the application
 
+Authentication & Authorization
+-------------------------------
+- Authentication is basically identity verification whether a user is registered/not so first he has to be registered then depending upon his permission and access rights he will be able to see things for different roles.
+- Authorization is having permission / access rights to see things which are permitted for certain roles. Eg: normal user can see the dashboard but cannot visit course details, student or someone who bought the course can see the dashboard along with the course details, Admin can see the dashboard but different from what student sees as he can see every details of number of users, course bought, upload videos, video details and etc so different roles have different view of things.
