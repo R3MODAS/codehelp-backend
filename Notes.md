@@ -1,5 +1,4 @@
-Blog App (Assignment)
----------------------
+# Blog App (Assignment)
 /posts - get the posts
 /posts/create - create a post
 /likes/like - update the like
@@ -16,8 +15,7 @@ Comment Model -> post: {id, ref: Post}, body: String, user: String
 - populate() is used to replace the id's saved inside the array with the original data of that id (comment/like object)
 - exec() is used to execute the query
 
-Basics of Backend
------------------
+# Basics of Backend
 - Client sends a request to `www.google.com` then the string is converted to ip address by `DNS Resolver` which does this job and then we get the ip address back then the `request` is made to the google server and we get back the `response` in the browser.
 
 - `Express` is used for server and `MongoDB` is the database and `Mongoose` helps to connect the server and database as we can write queries in mongoose to do `CRUD operations` in database.
@@ -31,14 +29,12 @@ app.use("/products", productRouter) ```
 
 - `MVC` model stands for Model-View-Controller is a pattern used to separate the app's concerns into 3 interconnected components. `Models` contains the data we defined and structured, `Controllers` contains all the functionality/request handlers that handles all the requests/response and do operations accordingly, Views contains the UI of the application
 
-Authentication & Authorization
--------------------------------
+# Authentication & Authorization
 - Authentication is basically identity verification whether a user is registered/not so first he has to be registered then depending upon his permission and access rights he will be able to see things for different roles.
 
 - Authorization is having permission / access rights to see things which are permitted for certain roles. Eg: normal user can see the dashboard but cannot visit course details, student or someone who bought the course can see the dashboard along with the course details, Admin can see the dashboard but different from what student sees as he can see every details of number of users, course bought, upload videos, video details and etc so different roles have different view of things.
 
-JSON Web Tokens (JWT)
----------------------
+# JSON Web Tokens (JWT)
 - JWTs is used to securely authenticate users, verify their identity, and provide access to authorized resources.
 
 - JWTs are composed of three parts: a header, a payload, and a signature. The header typically contains the type of the token (JWT), and the signing algorithm used. The payload contains the data being transmitted, such as the user's ID or email address. The signature is created by hashing the header and payload using a secret key, which can be used to verify the authenticity of the token.
@@ -82,9 +78,9 @@ process else throw an error
 4. compare password if the password we are giving and the hashed password
 is same or not using bcrypt.compare() and if no then return error and if yes then
 
-5. create jwt token using jwt.sign() and it returns a token which we will include
-inside the user.token = token and user.password = undefined as we are gonna send
-the user object in response and we want to hide the password
+5. create jwt token using jwt.sign() and it returns a token and we will send the some of the user info (except the password) in response as we want to hide the password
 
 6. we will send the user object in res.cookie() with cookie name, data and options and
 return status(200) and json with success, user obj, token and message
+
+So we made a basic signup and login 
