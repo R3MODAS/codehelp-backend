@@ -63,11 +63,28 @@ JWT tokens and cookies are both popular methods of authentication and authorizat
 
 Signup process
 --------------
-- Got the data from the client/user side in req.body
-- Validation of the data if the data is correct or not
-- Checking if email already registered/not by doing db call `findOne({email})`
-- If no email exists then encrypt the password using `bcrypt`
-- Using the Model we use `create/save` method to create the data inside the `Database`
+1. Got the data from the client/user side in req.body
+2. Validation of the data if the data is correct or not
+3. Checking if email already registered/not by doing db call `findOne({email})`
+4. If no email exists then encrypt the password using `bcrypt`
+5. Using the Model we use `create/save` method to create the data inside the `Database`
 
 Login process
 -------------
+1. Get the data from req.body (email and password)
+
+2. validation of the data if it is valid or not if it is valid then move on 
+with the process else throw an error
+
+3. check if the user is registered or not if yes then move on with the login 
+process else throw an error
+
+4. compare password if the password we are giving and the hashed password
+is same or not using bcrypt.compare() and if no then return error and if yes then
+
+5. create jwt token using jwt.sign() and it returns a token which we will include
+inside the user.token = token and user.password = undefined as we are gonna send
+the user object in response and we want to hide the password
+
+6. we will send the user object in res.cookie() with cookie name, data and options and
+return status(200) and json with success, user obj, token and message

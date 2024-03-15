@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
 
 const connectDB = () => {
-    mongoose.connect(`${process.env.MONGODB_URL}/CodehelpAuth`)
+    mongoose.connect(`${process.env.MONGODB_URL}/CodehelpBackend`)
     .then(() => {
         console.log(`MongoDB connection successful !!`)
     })
