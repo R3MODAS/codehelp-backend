@@ -5,11 +5,13 @@
 /likes/unlike - update the unlike
 /comments - get the comments
 /comments/create - create a comment
+/comments/uncreate - delete a comment
 
 Post Model -> title: String, body: String, likes: [id, ref: Like], comments: [id, ref: Comment]
 Like Model -> post: {id, ref: Post}, user: String
 Comment Model -> post: {id, ref: Post}, body: String, user: String
 
+- create/save method is used to create data in the db
 - $push operator to create/update any entry in db
 - $pull operator to delete any entry in db
 - populate() is used to replace the id's saved inside the array with the original data of that id (comment/like object)
