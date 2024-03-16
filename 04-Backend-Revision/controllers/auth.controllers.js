@@ -98,7 +98,7 @@ exports.login = async (req, res) => {
                 httpOnly: true
             }
 
-            res.cookie("cookie", cookieData, options).status(200).json({
+            res.cookie("cookie", token, options).status(200).json({
                 success: true,
                 token,
                 user: cookieData,

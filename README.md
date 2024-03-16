@@ -85,4 +85,14 @@ is same or not using bcrypt.compare() and if no then return error and if yes the
 6. we will send the user object in res.cookie() with cookie name, data and options and
 return status(200) and json with success, user obj, token and message
 
-So we made a basic signup and login 
+So we made a basic signup and login
+
+Protected Routes and Authorization
+----------------------------------
+A route where only the certain authorized role can visit that otherwise they are blocked by middlewares
+
+- First we can do authorization middleware for the jwt verification where they have the correct credentials (token and secret key) so that we can get our payload (user object we passed to jwt to encrypt)
+
+- We pass that user object (payload) inside req.user so that it can be accessed in the next middleware
+
+- Once verified we can move to the next middlewares to check if the user is having the role (student/admin) and we can check the role of the user using the `req.user` we just used to pass the `payload` we got from `jwt`
