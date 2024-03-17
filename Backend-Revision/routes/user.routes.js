@@ -1,31 +1,24 @@
 const { Router } = require("express")
 const router = Router()
-const { login, signup } = require("../controllers/auth.controllers")
-const { auth, isStudent, isAdmin } = require("../middlewares/auth.middlewares")
 
-router.post("/signup", signup)
+// Routes for login and signup
+const {login,signup} = require("../controllers/auth.controllers")
+const { auth, isStudent, isAdmin } = require("../middlewares/auth.middlewares")
 router.post("/login", login)
+router.post("/signup", signup)
 
 // Protected Routes
-router.get("/test", auth, (req, res) => {
-    return res.status(200).json({
-        success: true,
-        message: "This is protected route for testing auth"
-    })
+
+router.get("/test", auth, (req,res) => {
+    return res.send("<h1>Welcome to the Protected Route for Testing</h1>")
 })
 
 router.get("/student", auth, isStudent, (req,res) => {
-    return res.status(200).json({
-        success: true,
-        message: "Welcome to the protected route for students"
-    })
+    return res.send("<h1>Welcome to the Protected Route for Student</h1>")
 })
 
 router.get("/admin", auth, isAdmin, (req,res) => {
-    return res.status(200).json({
-        success: true,
-        message: "Welcome to the protected route for admin"
-    })
+    return res.send("<h1>Welcome to the Protected Route for Admin</h1>")
 })
 
 module.exports = router

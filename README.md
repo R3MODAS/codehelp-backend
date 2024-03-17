@@ -71,19 +71,15 @@ Login process
 -------------
 1. Get the data from req.body (email and password)
 
-2. validation of the data if it is valid or not if it is valid then move on 
-with the process else throw an error
+2. validation of the data if it is valid or not if it is valid then move on with the process else throw an error
 
-3. check if the user is registered or not if yes then move on with the login 
-process else throw an error
+3. check if the user is registered or not if yes then move on with the login process else throw an error
 
-4. compare password if the password we are giving and the hashed password
-is same or not using bcrypt.compare() and if no then return error and if yes then
+4. compare password if the password we are giving and the hashed password is same or not using `bcrypt.compare()` and if no then return error and if yes then
 
 5. create jwt token using jwt.sign() and it returns a token and we will send the some of the user info (except the password) in response as we want to hide the password
 
-6. we will send the user object in res.cookie() with cookie name, data and options and
-return status(200) and json with success, user obj, token and message
+6. we will send the user object in res.cookie() with cookie name, data and options and return status(200) and json with success, user obj, token and message
 
 So we made a basic signup and login
 
@@ -101,4 +97,4 @@ Ways to fetch token
 ---------------------
 - req.cookies => To fetch the token from cookies `[Not Secure]`
 - req.body => To fetch the token from request body `[Not Secure]`
-- req.header => To fetch the token from the header as it is the most secure way of doing it `req.header("Authorization").replace("Bearer ", "")` as the implementation is `Authorization : Bearer <token>` like this
+- req.header => To fetch the token from the header as it is the most secure way of doing it `req.header("Authorization").replace("Bearer ","")` as the implementation is `Authorization : Bearer <token>` like this

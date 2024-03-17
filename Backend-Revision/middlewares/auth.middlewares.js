@@ -2,18 +2,18 @@ const jwt = require("jsonwebtoken")
 
 exports.auth = async (req,res,next) => {
     try{
-        const token = req.body.token
+        const token = req.body.token || req.cookies.token
 
-        if(!token) {
+        if(!token || token === undefined){
             return res.status(401).json({
                 success: false,
-                message: "Token missing"
+                message: "Token is missing"
             })
         }
-        
+
         try{
-            const payload = jwt.verify(token, process.env.JWT_SECRET)
-            req.user = payload
+            const decodedPayload = jwt.decode(token, process.env.JWT_SECRET);
+            req.user = decodedPayload
         }catch(err){
             return res.status(401).json({
                 success: false,
@@ -21,49 +21,45 @@ exports.auth = async (req,res,next) => {
             })
         }
         next()
+
     }catch(err){
-        console.error(err)
-        return res.status(401).json({
+        res.status(400).json({
             success: false,
-            message: "Something went wrong, while verifying the token"
+            message: "You have no authorization to enter this Test Protected route"
         })
     }
-
 }
 
 exports.isStudent = async (req,res,next) => {
-    try {
+    try{
         if(req.user.role !== "Student"){
-            return res.status(401).json({
+            return res.status(403).json({
                 success: false,
-                message: "This is a protected route for students"
+                message: "You are not authorized and permitted to enter this student route"
             })
         }
         next()
-    } catch (err) {
-        console.error(err)
-        return res.status(500).json({
+    }catch(err){
+        res.status(400).json({
             success: false,
-            message: `The Role you provided ${req.user.role} is not matching with the Admin Role`
+            message: "You have no authorization to enter this Student route"
         })
     }
-    next()
 }
 
 exports.isAdmin = async (req,res,next) => {
     try{
         if(req.user.role !== "Admin"){
-            return res.status(401).json({
+            return res.status(403).json({
                 success: false,
-                message: "This is a protected route for admin"
+                message: "You are not authorized and permitted to enter this admin route"
             })
         }
         next()
     }catch(err){
-        console.error(err)
-        return res.status(500).json({
+        res.status(400).json({
             success: false,
-            message: `The Role you provided ${req.user.role} is not matching with the Admin Role`
+            message: "You have no authorization to enter this Admin route"
         })
     }
 }

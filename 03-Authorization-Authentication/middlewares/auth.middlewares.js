@@ -2,8 +2,11 @@ const jwt = require("jsonwebtoken")
 
 exports.auth = async (req,res,next) => {
     try{
-        console.log("Cookie", req.cookies.cookie)
-        const token = req.body.token
+        console.log("Cookie", req.cookies.token)
+        console.log("Body", req.body.token)
+        console.log("Header", req.header("Authorization"))
+
+        const token = req.body.token || req.cookies.token || req.header("Authorization").replace("Bearer ", "")
 
         if(!token || token === undefined) {
             return res.status(401).json({
@@ -23,10 +26,10 @@ exports.auth = async (req,res,next) => {
         }
         next()
     }catch(err){
-        console.error(err)
         return res.status(401).json({
             success: false,
-            message: "Something went wrong, while verifying the token"
+            message: "Something went wrong, while verifying the token",
+            error: err.message
         })
     }
 

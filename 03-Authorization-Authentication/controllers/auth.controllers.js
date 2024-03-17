@@ -85,7 +85,7 @@ exports.login = async (req, res) => {
                 }
             )
 
-            const cookieData = {
+            const userdata = {
                 _id: User._id,
                 name: User.name,
                 email: User.email,
@@ -98,12 +98,19 @@ exports.login = async (req, res) => {
                 httpOnly: true
             }
 
-            res.cookie("cookie", token, options).status(200).json({
+            res.cookie("token", token, options).status(200).json({
                 success: true,
                 token,
-                user: cookieData,
+                user: userdata,
                 message: "User logged in successfully"
             })
+            
+            // return res.status(200).json({
+            //     success: true,
+            //     token,
+            //     user: userdata,
+            //     message: "User logged in successfully"
+            // })
         }
         else{
             return res.status(403).json({
