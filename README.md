@@ -45,8 +45,7 @@ app.use("/products", productRouter) ```
 
 - JWTs are commonly used in Single Sign-On (SSO) systems, where a user can authenticate once and access multiple web applications without having to re-enter their credentials. They are also used in token-based authentication systems, where the token is used instead of a username and password.
 
-Cookies
--------
+# Cookies
 - Cookies are small text files that are stored on a user's computer when they visit a website. They are commonly used to store user preferences, shopping cart items, and session data. Cookies can also be used for authentication and authorization.
 
 - When a user logs into a web application, the server can create a cookie that contains a unique identifier for the user's session. This cookie can then be sent to the client as a response. The client can include the cookie in subsequent requests to the server, allowing the server to identify the user and provide access to authorized resources.
@@ -55,36 +54,25 @@ Cookies
 
 - Cookies have some disadvantages, including the fact that they can be easily tampered with and that they can be blocked by the user's browser. They also require additional server-side processing to store and retrieve the cookie data.
 
-Conclusion of JWT and cookies
-------------------------------
+# Conclusion of JWT and cookies
 JWT tokens and cookies are both popular methods of authentication and authorization in web development. JWTs are self-contained and can be easily transmitted between parties, while cookies are stored on the user's computer and require additional server-side processing. Both methods have their advantages and disadvantages, and developers should choose the method that best fits their application's security and performance needs.
 
-Signup process
---------------
+# Signup process
 1. Got the data from the client/user side in req.body
 2. Validation of the data if the data is correct or not
 3. Checking if email already registered/not by doing db call `findOne({email})`
 4. If no email exists then encrypt the password using `bcrypt`
 5. Using the Model we use `create/save` method to create the data inside the `Database`
 
-Login process
--------------
+# Login process
 1. Get the data from req.body (email and password)
-
 2. validation of the data if it is valid or not if it is valid then move on with the process else throw an error
-
 3. check if the user is registered or not if yes then move on with the login process else throw an error
-
 4. compare password if the password we are giving and the hashed password is same or not using `bcrypt.compare()` and if no then return error and if yes then
-
 5. create jwt token using jwt.sign() and it returns a token and we will send the some of the user info (except the password) in response as we want to hide the password
-
 6. we will send the user object in res.cookie() with cookie name, data and options and return status(200) and json with success, user obj, token and message
 
-So we made a basic signup and login
-
-Protected Routes and Authorization
-----------------------------------
+# Protected Routes and Authorization
 A route where only the certain authorized role can visit that otherwise they are blocked by middlewares
 
 - First we can do authorization middleware for the jwt verification where they have the correct credentials (token and secret key) so that we can get our payload (user object we passed to jwt to encrypt)
@@ -97,4 +85,25 @@ Ways to fetch token
 ---------------------
 - req.cookies => To fetch the token from cookies `[Not Secure]`
 - req.body => To fetch the token from request body `[Not Secure]`
-- req.header => To fetch the token from the header as it is the most secure way of doing it `req.header("Authorization").replace("Bearer ","")` as the implementation is `Authorization : Bearer <token>` like this
+- req.header => To fetch the token from the header as it is the most secure way of doing it `req.header("Authorization").replace("Bearer ","")` as the implementation is `Authorization : Bearer <token>`
+
+# File uploading
+We need a Node.js server application that allows users to upload images and videos to the server. It uses Express and the Express File Uploader middleware to handle file uploads. The uploaded files are then stored on Cloudinary, a cloud-based image and video management service. The application also sends an email to the user who uploaded the file, containing a link to the uploaded file.
+
+<p>The application should consists of four files:</p>
+<ol>
+	<li>index.js: This file sets up the Express app, connects to the database and Cloudinary, and defines the endpoints for file upload.</li>
+	<li>/routes/FileUpload.js: This file defines the routes for file upload, which include imageUpload, videoUpload, and imageSizeReducer.</li>
+	<li>/models/File.js: This file defines the schema for the uploaded files and defines a post-save hook that sends an email to the user who uploaded the file.</li>
+	<li>/controllers/fileUpload.js: This file contains the logic for handling file uploads, including checking file types, uploading to Cloudinary, and saving the file to the database.</li>
+</ol>
+
+Routes for File uploading
+-------------------------
+- /ImageUpload => Upload to cloudinary and make an entry into DB (jpg,jpeg,png)
+- /VideoUpload => Upload to cloudinary and make an entry into DB (mp4,mov)
+- /ImageReduceUpload => Upload to cloudinary (Limit < 2MB size>) and make an entry into DB
+- /LocalFileUpload => Store the file inside server
+
+Cloudinary is a Media Server where files (Images,videos,etc) are stored in that server and we can just use those files in our project
+
