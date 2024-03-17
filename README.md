@@ -96,3 +96,9 @@ A route where only the certain authorized role can visit that otherwise they are
 - We pass that user object (payload) inside req.user so that it can be accessed in the next middleware
 
 - Once verified we can move to the next middlewares to check if the user is having the role (student/admin) and we can check the role of the user using the `req.user` we just used to pass the `payload` we got from `jwt`
+
+Ways to fetch token
+---------------------
+- req.cookies => To fetch the token from cookies `[Not Secure]`
+- req.body => To fetch the token from request body `[Not Secure]`
+- req.header => To fetch the token from the header as it is the most secure way of doing it `req.header("Authorization").replace("Bearer ", "")` as the implementation is `Authorization : Bearer <token>` like this

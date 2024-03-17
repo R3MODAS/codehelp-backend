@@ -1,23 +1,19 @@
-// auth, isStudent, isAdmin
 const jwt = require("jsonwebtoken")
 
-exports.auth = (req, res, next) => {
-    try {
-        // extract jwt token
-        // PENDING : other ways to fetch token
+exports.auth = async (req,res,next) => {
+    try{
+        console.log("Cookie", req.cookies.cookie)
         const token = req.body.token
 
-        if(!token){
+        if(!token || token === undefined) {
             return res.status(401).json({
                 success: false,
                 message: "Token missing"
             })
         }
-
-        // verify the jwt
+        
         try{
             const payload = jwt.verify(token, process.env.JWT_SECRET)
-            console.log(payload)
             req.user = payload
         }catch(err){
             return res.status(401).json({
@@ -26,16 +22,17 @@ exports.auth = (req, res, next) => {
             })
         }
         next()
-    } catch (err) {
+    }catch(err){
         console.error(err)
         return res.status(401).json({
             success: false,
             message: "Something went wrong, while verifying the token"
         })
     }
+
 }
 
-exports.isStudent = (req, res, next) => {
+exports.isStudent = async (req,res,next) => {
     try {
         if(req.user.role !== "Student"){
             return res.status(401).json({
@@ -48,13 +45,14 @@ exports.isStudent = (req, res, next) => {
         console.error(err)
         return res.status(500).json({
             success: false,
-            message: "The Role is not matching"
+            message: `The Role you provided ${req.user.role} is not matching with the Admin Role`
         })
     }
+    next()
 }
 
-exports.isAdmin = (req, res, next) => {
-    try {
+exports.isAdmin = async (req,res,next) => {
+    try{
         if(req.user.role !== "Admin"){
             return res.status(401).json({
                 success: false,
@@ -62,11 +60,11 @@ exports.isAdmin = (req, res, next) => {
             })
         }
         next()
-    } catch (err) {
+    }catch(err){
         console.error(err)
         return res.status(500).json({
             success: false,
-            message: "The Role is not matching"
+            message: `The Role you provided ${req.user.role} is not matching with the Admin Role`
         })
     }
 }

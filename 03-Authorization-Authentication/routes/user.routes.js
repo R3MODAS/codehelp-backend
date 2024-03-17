@@ -1,32 +1,30 @@
 const { Router } = require("express")
 const router = Router()
-
 const { login, signup } = require("../controllers/auth.controllers")
 const { auth, isStudent, isAdmin } = require("../middlewares/auth.middlewares")
 
 router.post("/signup", signup)
 router.post("/login", login)
 
-// testing protected route for single middleware
-router.get("/test", auth, (req,res) => {
-    res.json({
+// Protected Routes
+router.get("/test", auth, (req, res) => {
+    return res.status(200).json({
         success: true,
-        message: "Welcome to the Protected route for testing"
+        message: "This is protected route for testing auth"
     })
 })
 
-// Protected Route
-router.get("/student", auth, isStudent, (req, res) => {
-    res.json({
+router.get("/student", auth, isStudent, (req,res) => {
+    return res.status(200).json({
         success: true,
-        message: "Welcome to the Protected route for students"
+        message: "Welcome to the protected route for students"
     })
 })
 
-router.get("/admin", auth, isAdmin, (req, res) => {
-    res.json({
+router.get("/admin", auth, isAdmin, (req,res) => {
+    return res.status(200).json({
         success: true,
-        message: "Welcome to the Protected route for Admin"
+        message: "Welcome to the protected route for admin"
     })
 })
 

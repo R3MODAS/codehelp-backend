@@ -4,92 +4,92 @@ const jwt = require("jsonwebtoken")
 
 exports.signup = async (req, res) => {
     try {
-        // get the data
         const { name, email, password, role } = req.body
-        // check if user already exist
-        const existingUser = await UserModel.findOne({ email });
+
+        if (!name || !email || !password || !role) {
+            return res.status(400).json({
+                success: false,
+                message: "Something is wrong with the data"
+            })
+        }
+
+        const existingUser = await UserModel.findOne({ email })
 
         if (existingUser) {
             return res.status(400).json({
                 success: false,
-                message: "User already Exists"
+                message: "User already exists"
             })
         }
 
-        // secure the password
         let hashedPassword;
         try {
             hashedPassword = await bcrypt.hash(password, 10)
-        }
-        catch (err) {
+        } catch (err) {
             return res.status(500).json({
                 success: false,
                 message: "Error in hashing the password"
             })
         }
 
-        // create entry for User
-        const user = await UserModel.create({ name, email, password: hashedPassword, role })
+        const createdUser = await UserModel.create({
+            email, name, password: hashedPassword, role
+        })
 
-        return res.status(200).json({
+        return res.status(201).json({
             success: true,
-            data: user,
+            data: createdUser,
             message: "User has been created successfully !!"
         })
 
     } catch (err) {
         console.error(err)
-        return res.status(500).json({
-            success: false,
-            message: "User cannot be registered, please try again later"
+        return res.status(400).json({
+            success: false
         })
     }
 }
 
 exports.login = async (req, res) => {
     try {
-        // data fetch
         const { email, password } = req.body
 
-        // validation on email and password
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
-                message: 'Please fill all the details carefully'
+                message: "Email/password is incorrect"
             })
         }
 
-        // check for registered user
-        const user = await UserModel.findOne({ email })
+        const User = await UserModel.findOne({ email })
 
-        // if not a registered user
-        if (!user) {
-            return res.status(401).json({
+        if (!User) {
+            return res.status(404).json({
                 success: false,
-                message: 'User is not registered'
+                message: "User not found"
             })
         }
 
         const payload = {
-            email: user.email,
-            id: user._id,
-            role: user.role
+            email: User.email,
+            id: User._id,
+            role: User.role
         }
 
-        // verify password and generate JWT token
-        if (await bcrypt.compare(password, user.password)) {
-            // password match
-            let token = jwt.sign(payload, process.env.JWT_SECRET, {
-                expiresIn: "2h"
-            })
-            // user.token = token
-            // user.password = undefined
+        if (await bcrypt.compare(password, User.password)) {
+            const token = jwt.sign(
+                payload,
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: "2h"
+                }
+            )
 
             const cookieData = {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
+                _id: User._id,
+                name: User.name,
+                email: User.email,
+                role: User.role,
                 token: token
             }
 
@@ -98,17 +98,14 @@ exports.login = async (req, res) => {
                 httpOnly: true
             }
 
-            // cookie
-            res.cookie("remoCookie", token, options).status(200).json({
+            res.cookie("cookie", token, options).status(200).json({
                 success: true,
                 token,
                 user: cookieData,
                 message: "User logged in successfully"
             })
-
         }
-        else {
-            // password do not match
+        else{
             return res.status(403).json({
                 success: false,
                 message: 'Incorrect password'
@@ -116,9 +113,8 @@ exports.login = async (req, res) => {
         }
     } catch (err) {
         console.error(err)
-        return res.status(500).json({
-            success: false,
-            message: "Failed to login"
+        res.status(400).json({
+            success: false
         })
     }
 }
