@@ -4,7 +4,6 @@ exports.createUser = async (req, res) => {
     try {
         const { name, email, title, department, role } = req.body
         if (!name || !email || !title || !role || !department) {
-            console.log("not all fields...");
             return res.status(400).json({
                 status: 400,
                 message: "Please fill all fields",

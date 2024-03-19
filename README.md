@@ -88,7 +88,7 @@ Ways to fetch token
 - req.header => To fetch the token from the header as it is the most secure way of doing it `req.header("Authorization").replace("Bearer ","")` as the implementation is `Authorization : Bearer <token>`
 
 ## File uploading
-We need a Node.js server application that allows users to upload images and videos to the server. It uses Express and the Express File Uploader middleware to handle file uploads. The uploaded files are then stored on Cloudinary, a cloud-based image and video management service. The application also sends an email to the user who uploaded the file, containing a link to the uploaded file.
+We are gonna use express-fileupload to store the files into the server only and we are gonna use cloudinary to store the files on their media server and here in our server store that file inside a temporary folder and once the file is uploaded in the cloudinary, the file stored inside the temp folder will be deleted.
 
 Routes for File uploading
 -------------------------
