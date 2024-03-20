@@ -6,6 +6,6 @@ const app = express()
 // middlewares
 app.use(express.json())
 app.use(fileUpload())
-app.use("ap/v1/upload", fileRouter)
+app.use("/api/v1/upload", fileRouter)
 
 module.exports = app

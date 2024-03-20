@@ -14,17 +14,22 @@ exports.localFileUpload = async (req, res) => {
         console.log(file)
 
         // creating the path
-        let path = __dirname + "/files/" + Date.now()
+        let path = __dirname + "/files/" + `${file.name}`
 
-        // using the mv() method to place the file somewhere in the server
-        file.mv(path, (err) => {
-            if (err) return res.status(500).send(err)
-        })
+        try {
+            // using the mv() method to place the file somewhere in the server
+            await file.mv(path)
 
-        res.status(200).json({
-            success: true,
-            message: "Local File Uploaded successfully"
-        })
+            res.status(200).json({
+                success: true,
+                message: "Local File Uploaded successfully"
+            })
+        } catch (err) {
+            return res.status(500).json({
+                success: false,
+                error: "Error moving the file: " + err.message
+            });
+        }
 
     } catch (err) {
         return res.status(500).json({
