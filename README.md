@@ -94,7 +94,7 @@ Routes for File uploading
 -------------------------
 - /ImageUpload => Upload to cloudinary and make an entry into DB (jpg,jpeg,png)
 - /VideoUpload => Upload to cloudinary and make an entry into DB (mp4,mov)
-- /ImageReduceUpload => Upload to cloudinary (Limit < 2MB size>) and make an entry into DB
+- /ImageSizeReducer => Upload to cloudinary (Limit < 2MB size>) and make an entry into DB
 - /LocalFileUpload => Store the file inside server
 
 ## Cloudinary and File Upload
@@ -103,3 +103,14 @@ Routes for File uploading
 - `fileupload()` is a middleware used to handle file uploads in an Express application. It parses the HTTP request containing the file and stores it on the server's file system or memory as per the configuration. This middleware can be used to handle files of various formats like images, videos, audio, etc.
 
 - The main difference between `fileupload()` and `cloudinary.uploader.upload()` is the location where the file is uploaded. With `fileupload()`, the file is uploaded to the server's file system or memory, whereas with `cloudinary.uploader.upload()`, the file is uploaded directly to the cloud.
+
+## Uploading the Image/Video in cloudinary
+- Fetch the files from `req.body` (name, email, tags, file)
+- Validate if the data sent from the user is valid or not
+- Receive the file in `req.files.file_name_we_used_to_pass` and now extract the file name using `file.name` and get the extension of the file using `path.extname(file.name).toLowerCase()`
+- Now check if the extension of the file user provided matches the set of extensions we want to set as constraints and if it doesn't matches throw an error otherwise proceed.
+- Now we can successfully upload the file inside cloudinary using `cloudinary.uploader.upload(file.tempFilePath, options)` and inside the options we can specify our folder inside cloudinary and also the `resource_type` as you can set it to `auto`
+- Then we create our entry for db with the data we got from req.body and adding `response.secure_url` that we got from our response from cloudinary as we uploaded that file successfully
+
+## Upload the Reducer Image quality and height in cloudinary
+- Now when while we are uploading the file inside cloudinary using `cloudinary.uploader.upload(file.tempFilePath, options)` and inside the options we can specify the quality and height as well on conditions such as '''if(quality && height) options.quality = quality; options.height = height'''
