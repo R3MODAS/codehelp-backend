@@ -114,3 +114,7 @@ Routes for File uploading
 
 ## Upload the Reducer Image quality and height in cloudinary
 - Now when while we are uploading the file inside cloudinary using `cloudinary.uploader.upload(file.tempFilePath, options)` and inside the options we can specify the quality and height as well on conditions such as '''if(quality && height) options.quality = quality; options.height = height'''
+
+## Things to study
+- SMTP Article
+- AWS Service - SQS and SNS
