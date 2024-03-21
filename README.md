@@ -3,7 +3,6 @@
 /posts/create - create a post
 /likes/like - update the like
 /likes/unlike - update the unlike
-/comments - get the comments
 /comments/create - create a comment
 /comments/uncreate - delete a comment
 

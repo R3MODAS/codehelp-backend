@@ -99,6 +99,7 @@ exports.imageUpload = async (req, res) => {
 
         // file format suported
         const response = await uploadFileToCloudinary(file, "Codehelp")
+        console.log(response)
 
         const fileData = await File.create({
             name, tags, email, url: response.secure_url

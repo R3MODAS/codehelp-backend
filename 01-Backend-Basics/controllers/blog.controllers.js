@@ -42,6 +42,16 @@ exports.createPost = async (req, res) => {
 exports.createComment = async (req, res) => {
     try {
         const { post, user, body } = req.body
+
+        const findPost = await Post.findById({_id : post})
+
+        if(!findPost){
+            return res.status(404).json({
+                success: false,
+                message: "Post not found"
+            })
+        }
+
         const comment = new Comment({ post, user, body })
 
         const savedComment = await comment.save()
@@ -68,6 +78,15 @@ exports.deleteComment = async (req, res) => {
     try {
         const { post, comment } = req.body
 
+        const findPost = await Post.findById({_id : post})
+
+        if(!findPost){
+            return res.status(404).json({
+                success: false,
+                message: "Post not found"
+            })
+        }
+
         const deletedComment = await Comment.findOneAndDelete({ post: post, _id: comment })
 
         const updatedPost = await Post.findByIdAndUpdate({ _id: post },
@@ -93,6 +112,16 @@ exports.deleteComment = async (req, res) => {
 exports.likePost = async (req, res) => {
     try {
         const { post, user } = req.body
+
+        const findPost = await Post.findById({_id : post})
+
+        if(!findPost){
+            return res.status(404).json({
+                success: false,
+                message: "Post not found"
+            })
+        }
+
         const like = new Like({ post, user })
         const savedLike = await like.save()
 
@@ -119,7 +148,17 @@ exports.unlikePost = async (req, res) => {
     try {
         const { post, like } = req.body
 
-        const deletedLike = await Like.findOneAndDelete({ post: post, _id: like })
+        const findPost = await Post.findById({_id : post})
+
+        if(!findPost){
+            return res.status(404).json({
+                success: false,
+                message: "Post not found"
+            })
+        }
+
+        // const deletedLike = await Like.findOneAndDelete({ post: post, _id: like })
+        const deletedLike = await Like.findByIdAndDelete({_id : like})
 
         const updatedPost = await Post.findByIdAndUpdate({ _id: post },
             { $pull: { likes: deletedLike._id } },
