@@ -117,3 +117,10 @@ Routes for File uploading
 ## Things to study
 - SMTP Article
 - AWS Service - SQS and SNS
+
+## StudyNotion Project Flow
+
+### Flow for Student
+- For login -> email and password
+- For signup -> firstname, lastname, email, phone, create password, confirm password
+- For password reset -> email as input then link set to email and we can now choose new password
