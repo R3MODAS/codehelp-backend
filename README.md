@@ -125,9 +125,7 @@ Routes for File uploading
 - For signup -> firstname, lastname, email, phone, create password, confirm password
 - For password reset -> email as input then link set to email and we can now choose new password
 
-## Flow in Backend
-- Student and Instructor both belongs to User Model
-
+## Models
 1. User Model -> firstname, lastname, email, password, confirmpass, accounttype, additionalDetails: ref Profile, Courses: [ref Course], image, courseProgress : [ref CourseProgress]
 2. Profile Model -> gender, dob, about, phone no
 3. CourseProgress Model -> Course Id, CompletedVideos: [{ref: SubSection}]
@@ -137,3 +135,19 @@ Routes for File uploading
 7. Tags Model -> name, description, course: ref Courses
 8. Section Model -> section name, SubSection: [{ref: SubSection}]
 9. OTP Model -> email, createdAt, otp
+
+## Sending Email Before Signup
+Before the data for signup is sent to the DB, the OTP verification should be done. First the otp is sent to the following email provided for signup then we put the otp to verify the email and if verified then just verify the email and move to login page
+
+- Before the data is sent to the signup go to the OTP model and using the `pre hook` send the otp to the email for email verification
+
+
+## Controllers
+
+### SendOtp Controller
+- get the email from the request body
+- check if the user with that email already exists in the db or not
+- if no user exists then generate an otp
+- check if the otp is unique or not and if not then keep finding the unique otp
+- create an entry for otp in db and sending the successful message
+
