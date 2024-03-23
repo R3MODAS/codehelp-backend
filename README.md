@@ -128,11 +128,11 @@ Routes for File uploading
 ## Flow in Backend
 - Student and Instructor both belongs to User Model
 
-- User Model -> firstname, lastname, email, password, confirmpass, accounttype, additionalDetails: ref Profile, Courses: [ref Courses], image, courseProgress : [ref CourseProgress]
+- User Model -> firstname, lastname, email, password, confirmpass, accounttype, additionalDetails: ref Profile, Courses: [ref Course], image, courseProgress : [ref CourseProgress]
 - Profile Model -> gender, dob, about, phone no
 - CourseProgress Model -> Course Id, CompletedVideos: [{ref: SubSection}]
 - SubSection Model -> title, time duration, description, videoUrl, additionalUrl
-- Courses Model -> course name, course description, whatyouwilllearn, course content: [{ref: Section}],  instructor: ref: User, price, thumbnail, rating and reviews: [{ref: rating and reviews}], tags: {ref: tag}, students enrolled: [{ref: User}]
+- Course Model -> course name, course description, whatyouwilllearn, course content: [{ref: Section}],  instructor: ref: User, price, thumbnail, rating and reviews: [{ref: rating and reviews}], tags: {ref: tag}, students enrolled: [{ref: User}]
 - Rating and Reviews Model -> user ref: User, rating, review
 - Tags Model -> name, description, course: ref Courses
 - Section Model -> section name, SubSection: [{ref: SubSection}]
