@@ -51,7 +51,6 @@ exports.isStudent = async (req,res,next) => {
             message: `The Role you provided ${req.user.role} is not matching with the Admin Role`
         })
     }
-    next()
 }
 
 exports.isAdmin = async (req,res,next) => {
