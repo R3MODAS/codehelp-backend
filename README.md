@@ -181,6 +181,14 @@ Controllers
 - return the response
 
 ### Reset Password controller
+- Get password, confirm Password and token from request body
+- Validation of password
+- get user details using the token
+- if no entry for the token -> invalid token
+- token expiring time checking
+- hash the new password
+- update the password in db
+- return response
 
 Middlewares
 -----------
