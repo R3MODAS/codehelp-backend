@@ -118,6 +118,8 @@ Routes for File uploading
 - SMTP Article
 - AWS Service - SQS and SNS
 
+
+
 ## StudyNotion Project Flow
 
 ### Flow for Student
@@ -141,17 +143,17 @@ Before the data for signup is sent to the DB, the OTP verification should be don
 
 - Before the data is sent to the signup go to the OTP model and using the `pre hook` send the otp to the email for email verification
 
-## Controllers
-
-### SendOtp Controller
+Controllers
+-----------
+### SendOtp controller
 - get the email from the request body
 - check if the user with that email already exists in the db or not
 - if no user exists then generate an otp
 - check if the otp is unique or not and if not then keep finding the unique otp
 - create an entry for otp in db and sending the successful message
 
-### Signup Controller
-- get the data from request body
+### Signup controller
+- get the data from request body along with otp data
 - validate the data
 - check if the password and confirm password matches or not
 - check if the user already exists in the db or not
@@ -162,19 +164,32 @@ Before the data for signup is sent to the DB, the OTP verification should be don
 - create an entry in the db with the signup data
 - return the response
 
-### Login Controller
+### Login controller
 - get the data from request body
 - validate the data
 - check if the user already exists in the db or not
 - match the password and generate a JWT token
 - send the token in the form of cookie to the user
 
-## Middlewares
+### Forgot/Reset Password controller
+### Reset Password Token controller
+- Get email from request body
+- validation of email and check if the user exists in the db or not
+- generate a token using crypto.randomUUID()
+- update user in db by adding token and expiration time
+- create url to send to the user email for resetting the password
+- return the response
 
+### Reset Password controller
+
+Middlewares
+-----------
 ### Auth
 - Extracting token from cookies/body/header
 - Validate the token
 - Decode the token using jwt.verify() and if decoded then send the decoded value inside req.user
 - Move to next() middleware
 
-### 
+## Student/Instructor/Admin
+Just check for the accountType value from the req.user.accountType and do checks on basis of that to whether allow the user or not
+

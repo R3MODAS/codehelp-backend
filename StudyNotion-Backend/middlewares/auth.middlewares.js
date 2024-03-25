@@ -41,7 +41,7 @@ exports.auth = async (req, res, next) => {
 // isStudent
 exports.isStudent = async (req, res, next) => {
     try {
-        if (!req.user.accountType === "Student") {
+        if (req.user.accountType !== "Student") {
             return res.status(401).json({
                 success: false,
                 message: "This is a protected route for student"
@@ -51,7 +51,7 @@ exports.isStudent = async (req, res, next) => {
         console.error(err)
         return res.status(500).json({
             success: false,
-            message: `You are not authorized for Student Role`
+            message: `Student role cannot be verified, please try again`
         })
     }
 }
@@ -59,7 +59,7 @@ exports.isStudent = async (req, res, next) => {
 // isInstructor
 exports.isInstructor = async (req, res, next) => {
     try {
-        if (!req.user.accountType === "Instructor") {
+        if (req.user.accountType !== "Instructor") {
             return res.status(401).json({
                 success: false,
                 message: "This is a protected route for instructor"
@@ -69,7 +69,7 @@ exports.isInstructor = async (req, res, next) => {
         console.error(err)
         return res.status(500).json({
             success: false,
-            message: `You are not authorized for Instructor Role`
+            message: `Instructor role cannot be verified, please try again`
         })
     }
 }
@@ -77,7 +77,7 @@ exports.isInstructor = async (req, res, next) => {
 // isAdmin
 exports.isAdmin = async (req, res, next) => {
     try {
-        if (!req.user.accountType === "Admin") {
+        if (req.user.accountType !== "Admin") {
             return res.status(401).json({
                 success: false,
                 message: "This is a protected route for admin"
@@ -87,7 +87,7 @@ exports.isAdmin = async (req, res, next) => {
         console.error(err)
         return res.status(500).json({
             success: false,
-            message: `You are not authorized for Admin Role`
+            message: `Admin role cannot be verified, please try again`
         })
     }
 }

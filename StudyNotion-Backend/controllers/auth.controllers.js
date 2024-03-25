@@ -221,11 +221,11 @@ exports.login = async (req, res) => {
                 })
 
         }
-        else{
+        else {
             return res.status(401).json({
                 success: false,
                 message: `Password is incorrect`,
-              })
+            })
         }
 
     } catch (err) {
@@ -240,10 +240,41 @@ exports.login = async (req, res) => {
 // Change Password
 exports.changePassword = async (req, res) => {
     try {
-        // get data from req body 
+        // get oldPassword, newPassword, confirmNewPassword from req body
+        const { oldPassword, newPassword, confirmNewPassword } = req.body
+
         // validation of data
-        // get oldPassword, newPassword, confirmNewPassword
+        if (!oldPassword || !newPassword || !confirmNewPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide oldPassword, newPassword, and confirmNewPassword"
+            });
+        }
+
+        // verify whether new password matches confirm new password
+        if (newPassword !== confirmNewPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and confirm password do not match"
+            });
+        }
+
+        // verify the old password
+        const checkOldPassword = await bcrypt.compare(oldPassword, user.password);
+        if (!checkOldPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid password"
+            });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
         // update password in db
+        
+
         // send mail - Password updated
         // return response 
     } catch (err) {
