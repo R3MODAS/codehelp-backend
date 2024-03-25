@@ -141,7 +141,6 @@ Before the data for signup is sent to the DB, the OTP verification should be don
 
 - Before the data is sent to the signup go to the OTP model and using the `pre hook` send the otp to the email for email verification
 
-
 ## Controllers
 
 ### SendOtp Controller
@@ -151,3 +150,31 @@ Before the data for signup is sent to the DB, the OTP verification should be don
 - check if the otp is unique or not and if not then keep finding the unique otp
 - create an entry for otp in db and sending the successful message
 
+### Signup Controller
+- get the data from request body
+- validate the data
+- check if the password and confirm password matches or not
+- check if the user already exists in the db or not
+- find the recent most OTP from db
+- validate OTP to see OTP present or not / Invalid OTP
+- Hash the password before storing into the db
+- create an entry for the profile model and set all the values to null
+- create an entry in the db with the signup data
+- return the response
+
+### Login Controller
+- get the data from request body
+- validate the data
+- check if the user already exists in the db or not
+- match the password and generate a JWT token
+- send the token in the form of cookie to the user
+
+## Middlewares
+
+### Auth
+- Extracting token from cookies/body/header
+- Validate the token
+- Decode the token using jwt.verify() and if decoded then send the decoded value inside req.user
+- Move to next() middleware
+
+### 

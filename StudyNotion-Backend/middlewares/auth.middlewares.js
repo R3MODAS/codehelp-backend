@@ -4,26 +4,28 @@ const UserModel = require("../models/user.models")
 // Auth
 exports.auth = async (req, res, next) => {
     try {
-        // extracting token
-        const token = req.cookies.token || req.body.token || req.header("Authorization").replace("Bearer ", "");
+        // Get the token
+        const token = req.body.token || req.cookies.token
 
-        // if token missing, then return response
-
+        // validate the token
         if (!token || token === undefined) {
             return res.status(401).json({
                 success: false,
-                message: "Token missing"
+                message: "Token is missing"
             })
         }
 
-        // verify the token
         try {
-            const payload = jwt.verify(token, process.env.JWT_SECRET)
-            req.user = payload
+            const decodedPayload = await jwt.verify(token, process.env.JWT_SECRET)
+            console.log(decodedPayload)
+
+            // send the decoded value to to the req.user so that other middlewares can access it
+            req.user = decodedPayload
+
         } catch (err) {
             return res.status(401).json({
                 success: false,
-                message: "Invalid token"
+                message: "Invalid Token",
             })
         }
         next()
@@ -37,58 +39,55 @@ exports.auth = async (req, res, next) => {
 }
 
 // isStudent
-exports.isStudent = async (req,res,next) => {
-    try{
-        if(req.user.accountType !== "Student"){
+exports.isStudent = async (req, res, next) => {
+    try {
+        if (!req.user.accountType === "Student") {
             return res.status(401).json({
                 success: false,
-                message: "This is a protected route for students"
+                message: "This is a protected route for student"
             })
         }
-        next()
     } catch (err) {
         console.error(err)
         return res.status(500).json({
             success: false,
-            message: `The Role you provided ${req.user.role} is not matching with the Student Role`
+            message: `You are not authorized for Student Role`
         })
     }
 }
 
 // isInstructor
-exports.isInstructor = async (req,res,next) => {
-    try{
-        if(req.user.accountType !== "Instructor"){
+exports.isInstructor = async (req, res, next) => {
+    try {
+        if (!req.user.accountType === "Instructor") {
             return res.status(401).json({
                 success: false,
-                message: "This is a protected route for Instructor only"
+                message: "This is a protected route for instructor"
             })
         }
-        next()
     } catch (err) {
         console.error(err)
         return res.status(500).json({
             success: false,
-            message: `The Role you provided ${req.user.role} is not matching with the Instructor Role`
+            message: `You are not authorized for Instructor Role`
         })
     }
 }
 
 // isAdmin
-exports.isAdmin = async (req,res,next) => {
-    try{
-        if(req.user.accountType !== "Admin"){
+exports.isAdmin = async (req, res, next) => {
+    try {
+        if (!req.user.accountType === "Admin") {
             return res.status(401).json({
                 success: false,
-                message: "This is a protected route for Admin only"
+                message: "This is a protected route for admin"
             })
         }
-        next()
     } catch (err) {
         console.error(err)
         return res.status(500).json({
             success: false,
-            message: `The Role you provided ${req.user.role} is not matching with the Admin Role`
+            message: `You are not authorized for Admin Role`
         })
     }
 }

@@ -8,50 +8,55 @@ const jwt = require("jsonwebtoken")
 // SendOTP
 exports.sendOTP = async (req, res) => {
     try {
-
-        // get email from request body 
+        // get email from user
         const { email } = req.body
 
+        // validation of data
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Email"
+            })
+        }
+
         // check if user already exists or not
-        const checkUser = await UserModel.findOne({ email: email })
+        const checkUser = await UserModel.findOne({ email })
 
         if (checkUser) {
             return res.status(401).json({
                 success: false,
-                message: "User is already registered"
+                message: "User already exists"
             })
         }
 
-        // generate otp
-        let otp = OtpGenerator.generate(6, {
+        // Generate OTP
+        let GeneratedOTP = OtpGenerator.generate(6, {
             upperCaseAlphabets: false,
             lowerCaseAlphabets: false,
             specialChars: false
         })
 
-        console.log("OTP generated: ", otp)
+        console.log("Generated OTP: ", GeneratedOTP)
 
-        // should be an unique otp or not
-        let result = await OtpModel.findOne({ otp: otp })
+        // Checking if the OTP is unique or not
+        let checkOTP = await OtpModel.findOne({ otp: GeneratedOTP })
 
-        // generating unique otp
-        while (result) {
-            otp = OtpGenerator.generate(6, {
+        while (checkOTP) {
+            GeneratedOTP = OtpGenerator.generate(6, {
                 upperCaseAlphabets: false,
                 lowerCaseAlphabets: false,
                 specialChars: false
             })
-            result = await OtpModel.findOne({ otp: otp })
+            checkOTP = await OtpModel.findOne({ otp: GeneratedOTP })
         }
 
-        // creating an entry for Otp in db
-        const otpBody = OtpModel.create({ email, otp })
-        console.log("OTPBODY: ", otpBody)
+        // Create an entry of OTP in the DB
+        const otpBody = await OtpModel.create({ email, otp })
+        console.log("OTP: ", otpBody)
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            message: "OTP sent successfully",
-            otp
+            message: "OTP sent successfully"
         })
     } catch (err) {
         console.log(err.message);
@@ -65,48 +70,48 @@ exports.sendOTP = async (req, res) => {
 // Signup
 exports.signup = async (req, res) => {
     try {
-
-        // data fetch from request.body
+        // fetch data from request body
         const { firstName, lastName, email, password, confirmPassword, accountType, contactNumber, otp } = req.body
 
-        // validate the data
+        // Validation of the data
         if (!firstName || !lastName || !email || !password || !confirmPassword || !otp) {
-            return res.status(403).json({
+            return res.status(400).json({
                 success: false,
                 message: "All fields are required"
             })
         }
 
-        // password and confirm password matches or not
+        // check if password and confirm password matches
         if (password !== confirmPassword) {
             return res.status(400).json({
                 success: false,
-                message: "Passwords does not match"
+                message: "Password does not match"
             })
         }
 
         // check if the user already exists or not
-        const existingUser = await UserModel.findOne({ email })
-        if (existingUser) {
+        const checkUser = await UserModel.findOne({ email })
+        if (checkUser) {
             return res.status(400).json({
                 success: false,
-                message: "User is already registered"
+                message: "User already exists"
             })
         }
 
-        // find most recent OTP stored for the user from db
+        // finding the recent OTP stored in the db
         const recentOtp = await OtpModel.find({ email }).sort({ createdAt: -1 }).limit(1)
         console.log(recentOtp)
 
-        // validate OTP
+        // recent OTP validation
         if (recentOtp.length === 0) {
-            // OTP not found
+            // OTP not found for the email
             return res.status(400).json({
                 success: false,
                 message: "OTP not found"
             })
         }
-        else if (otp !== recentOtp.otp) {
+
+        else if (otp !== recentOtp[0].otp) {
             // Invalid OTP
             return res.status(400).json({
                 success: false,
@@ -114,34 +119,42 @@ exports.signup = async (req, res) => {
             })
         }
 
-        // hash password
-        const hashedPassword = await bcrypt.hash(password, 10)
+        // Hashing the password before storing into the db
+        try {
+            const hashedPassword = await bcrypt.hash(password, 10)
 
-        // entry created in DB
-        const ProfileDetails = await ProfileModel.create({
-            gender: null,
-            dateOfBirth: null,
-            about: null,
-            contactNumber: null
-        })
+            // entry created in DB
+            const ProfileDetails = await ProfileModel.create({
+                gender: null,
+                dateOfBirth: null,
+                about: null,
+                contactNumber: null
+            })
 
-        const user = await UserModel.create({
-            firstName,
-            lastName,
-            email,
-            contactNumber,
-            password: hashedPassword,
-            accountType,
-            additionalDetails: ProfileDetails._id,
-            image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`
-        })
+            const createdUser = await UserModel.create({
+                firstName,
+                lastName,
+                email,
+                contactNumber,
+                password: hashedPassword,
+                accountType,
+                additionalDetails: ProfileDetails._id,
+                image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`
+            })
 
-        // return res
-        return res.status(200).json({
-            success: true,
-            message: "User is registered successfully",
-            user
-        })
+            return res.status(201).json({
+                success: true,
+                createdUser,
+                message: "User is registered successfully"
+            })
+        }
+        catch (err) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to Hash the Password"
+            })
+        }
+
 
     } catch (err) {
         console.log(err.message);
@@ -155,61 +168,66 @@ exports.signup = async (req, res) => {
 // Login
 exports.login = async (req, res) => {
     try {
-        // get data from req body
+        // fetch data from request body 
         const { email, password } = req.body
 
-        // validation of data
+        // Validation of the data
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
-                message: "Email/password is incorrect"
+                message: "Email/Password is incorrect"
             })
         }
 
-        // check user if it exists or not
-        const user = await UserModel.findOne({ email }).populate("additionalDetails")
+        // Check if user already exists in the db or not
+        const checkUser = await UserModel.findOne({ email }).populate("additionalDetails")
 
-        if (!user) {
+        if (!checkUser) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
             })
         }
 
-        // match the password and generate jwt
-        const payload = {
-            email: user.email,
-            id: user._id,
-            accountType: user.accountType
+        // Match the passwords from the user and db one and generate JWT
+        if (await bcrypt.compare(password, checkUser.password)) {
+            const token = jwt.sign(
+                {
+                    id: checkUser._id,
+                    email: checkUser.email,
+                    accountType: checkUser.accountType
+                },
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: "2h"
+                }
+            )
+
+            // Send the token in the form of cookie and sending the response to the user
+            res.cookie("token", token,
+                {
+                    httpOnly: true,
+                    expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+                }).status(200).json({
+                    success: true,
+                    token,
+                    user: {
+                        id: checkUser.id,
+                        email: checkUser.email,
+                        accountType: checkUser.accountType,
+                        image: checkUser.image
+                    },
+                    message: "Logged in successfully"
+                })
+
         }
-
-        if (await bcrypt.compare(password, user.password)) {
-            const token = jwt.sign(payload, process.env.JWT_SECRET, {
-                expiresIn: "2h"
-            })
-
-            user.token = token
-            user.password = undefined
-
-            const options = {
-                expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-                httpOnly: true
-            }
-
-            // create cookie and send response
-            res.cookie("token", token, options).status(200).json({
-                success: true,
-                token,
-                user,
-                message: "Logged in successfully"
-            })
-        }
-        else {
-            return res.status(403).json({
+        else{
+            return res.status(401).json({
                 success: false,
-                message: 'Incorrect password'
-            })
+                message: `Password is incorrect`,
+              })
         }
+
     } catch (err) {
         console.error(err)
         res.status(500).json({
@@ -220,12 +238,21 @@ exports.login = async (req, res) => {
 }
 
 // Change Password
-exports.changePassword = async (req,res) => {
-    // get data from req body 
-    // get oldPassword, newPassword, confirmNewPassword
-    // validation of data
+exports.changePassword = async (req, res) => {
+    try {
+        // get data from req body 
+        // validation of data
+        // get oldPassword, newPassword, confirmNewPassword
+        // update password in db
+        // send mail - Password updated
+        // return response 
+    } catch (err) {
+        console.error(err.message)
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        })
+    }
 
-    // update password in db
-    // send mail - Password updated
-    // return response 
+
 }
