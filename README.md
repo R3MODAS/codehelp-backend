@@ -201,3 +201,32 @@ Middlewares
 ## Student/Instructor/Admin
 Just check for the accountType value from the req.user.accountType and do checks on basis of that to whether allow the user or not
 
+## Course, Tag, Section, SubSection Models and Controllers
+- Before creating "Course" we got to have "Tag" data before even creating the "Course"
+- After that we will be able to create "Section" then we can move to create "Sub Section"
+- So the flow will be like this so we create controllers like this => "Tag" -> "Course" -> "Section" -> "SubSection"
+
+## Tag Controller Flow
+CreateTag
+- get data (name,desc) -> body
+- validation
+- tag entry in db
+- return response
+
+GetAllTags
+- find()
+- return response
+
+## Course Controller Flow
+CreateCourse 
+- get data (courseName, courseDescription, whatYouWillLearn, price, tag) from request body
+- get thumbnail
+- validation
+- check for instructor
+- check given tag is valid or not
+- Upload Image on cloudinary
+- create an entry for new Course
+- add the new course to the user schema of instructor
+
+getAllCourses
+
