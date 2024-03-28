@@ -4,7 +4,7 @@ const sendEmail = require("../utils/mailer")
 const bcrypt = require("bcrypt")
 const crypto = require("crypto")
 
-// reset Password Token
+// Reset Password Token
 exports.resetPasswordToken = async (req, res) => {
     try {
         // get email from request body
@@ -56,7 +56,7 @@ exports.resetPasswordToken = async (req, res) => {
     }
 }
 
-// reset Password
+// Reset Password
 exports.resetPassword = async (req, res) => {
     try {
         // get password, confirmPassword, token from request body
