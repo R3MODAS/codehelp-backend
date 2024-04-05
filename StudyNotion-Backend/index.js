@@ -1,5 +1,5 @@
-const app = require("./app")
-const connectDB = require("./db/index")
+const app = require("./app");
+const connectDB = require("./db");
 
 process.loadEnvFile()
 

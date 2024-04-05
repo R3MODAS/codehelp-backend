@@ -4,11 +4,10 @@ const { DB_NAME } = require("../constants")
 const connectDB = async () => {
     await mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`)
     .then(() => {
-        console.log(`MongoDB is connected successfully !!!`)
+        console.log(`MongoDB connected successfully`)
     })
     .catch((err) => {
-        console.log(`Something went wrong while connecting MongoDB`)
-        console.error(err)
+        console.log(`Failed to connect MongoDB: `,err)
         process.exit(1)
     })
 }

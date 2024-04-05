@@ -1,3 +1,2 @@
-const DB_NAME = "studynotion"
-
+const DB_NAME = "BackendPractice"
 module.exports = {DB_NAME}

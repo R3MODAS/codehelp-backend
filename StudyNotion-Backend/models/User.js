@@ -1,7 +1,5 @@
-// Import the Mongoose library
 const mongoose = require("mongoose")
 
-// Define the user schema using the Mongoose Schema constructor
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
@@ -16,19 +14,24 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true
+        trim: true
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     accountType: {
         type: String,
+        enum: ["Student", "Admin", "Instructor"],
         required: true
     },
     additionalDetails: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Profile",
+        ref: "Profile"
+    },
+    image: {
+        type: String,
         required: true
     },
     courses: [
@@ -37,21 +40,17 @@ const userSchema = new mongoose.Schema({
             ref: "Course"
         }
     ],
-    forgetPasswordToken: String,
-    forgetPasswordTokenExpiry: Date,
-    image: {
-        type: String,
-        required: true
-    },
     courseProgress: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "CourseProgress"
         }
-    ]
+    ],
+    forgetPasswordToken: String,
+    forgetPasswordTokenExpiry: Date
+})
 
-}, { timestamps: true })
-
-// Export the Mongoose model
 const User = mongoose.model("User", userSchema)
 module.exports = User
+
+// userSchema -> firstName, lastName, email, password, courses, accountType, additionalDetails, image, courseProgress,

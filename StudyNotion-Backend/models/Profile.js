@@ -1,22 +1,17 @@
 const mongoose = require("mongoose")
 
 const profileSchema = new mongoose.Schema({
-    // gender of the user
     gender: {
-        type: String,
-        enum: ["Male", "Female", "Other"]
-    },
-    // date of birth of the user
-    dateOfBirth: {
         type: String
     },
-    // contact number of the user
-    contactNumber: {
+    about: {
         type: String,
         trim: true
     },
-    // about the user
-    about: {
+    dateOfBirth: {
+        type: String
+    },
+    contactNumber: {
         type: String,
         trim: true
     }

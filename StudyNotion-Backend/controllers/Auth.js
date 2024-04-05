@@ -1,64 +1,72 @@
-const bcrypt = require("bcrypt")
-const jwt = require("jsonwebtoken")
-const otpGenerator = require("otp-generator")
-
 const User = require("../models/User")
 const Otp = require("../models/Otp")
 const Profile = require("../models/Profile")
-const sendEmail = require("../utils/mailer")
-const { updatedPassword } = require("../mail/updatedPassword")
 
-// SendOTP
-exports.sendOTP = async (req, res) => {
-    // getting the data from the request body (user)
-    const { email } = req.body
+const otpGenerator = require("otp-generator")
+const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
 
-    // validation of the data
-    if (!email) {
-        return res.status(401).json({
-            success: false,
-            message: "Email is incorrect"
-        })
-    }
+const mailer = require("../utils/mailer")
+const { updatedPassword } = require("../../StudyNotion-Backend/mail/updatedPassword")
 
-    // check if the user already exists in the db or not
-    const existingUser = await User.findOne({ email })
-    if (existingUser) {
-        return res.status(401).json({
-            message: 'User is already registered',
-            success: false
-        })
-    }
+// Send OTP
+exports.sendOtp = async (req, res) => {
+    try {
+        // get the email from request body
+        const { email } = req.body
 
-    // generate otp
-    let otp = otpGenerator.generate(6, {
-        upperCaseAlphabets: false,
-        lowerCaseAlphabets: false,
-        specialChars: false
-    })
-    console.log(otp)
+        // validation of the email
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Email"
+            })
+        }
 
-    // check if the otp is unique or not
-    let result = Otp.findOne({ otp })
-    while (result) {
-        otp = otpGenerator.generate(6, {
-            upperCaseAlphabets: false,
+        // check if the email exists in the db or not
+        const existingUser = await User.findOne({ email: email })
+
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "User is already registered, Please move to the Login page"
+            })
+        }
+
+        // generate an otp
+        let otp = otpGenerator.generate(6, {
             lowerCaseAlphabets: false,
             specialChars: false,
+            upperCaseAlphabets: false
         })
-        result = await Otp.findOne({ otp })
+
+        // check if the otp is unique or not
+        let result = await Otp.findOne({ otp: otp })
+        while (result) {
+            otp = otpGenerator.generate(6, {
+                lowerCaseAlphabets: false,
+                specialChars: false,
+                upperCaseAlphabets: false
+            })
+            result = await Otp.findOne({ otp: otp })
+        }
+
+        // create an entry for otp in the db
+        const otpBody = await Otp.create({ otp: otp, email: email })
+
+        // return the response
+        return res.status(200).json({
+            success: true,
+            message: "Otp sent successfully"
+        })
+    } catch (err) {
+        console.error(err)
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong while sending the OTP",
+            error: err.message
+        })
     }
-
-    // entry of otp in the db
-    const otpBody = await Otp.create({ otp, email })
-    console.log(otpBody)
-
-    // return the response
-    return res.status(200).json({
-        success: true,
-        message: "OTP sent Successfully",
-        otp
-    })
 }
 
 // Signup
@@ -68,146 +76,144 @@ exports.signup = async (req, res) => {
         const { firstName, lastName, email, password, confirmPassword, accountType, contactNumber, otp } = req.body
 
         // validation of the data
-        if (!firstName || !lastName || !email || !password || !confirmPassword || !otp) {
+        if (!firstName || !lastName || !email || !password || !confirmPassword || !accountType || !contactNumber || !otp) {
             return res.status(400).json({
                 success: false,
-                message: 'Please provide all the required fields'
-            });
+                message: "Please fill the details properly"
+            })
         }
 
-        // check if the password matches with the confirm password or not
+        // check if the password and confirmPassword matches or not
         if (password !== confirmPassword) {
             return res.status(400).json({
                 success: false,
-                message: 'Password do not match , please try again'
-            });
+                message: "Password does not match"
+            })
         }
 
         // check if the user already exists in the db or not
-        const existingUser = await User.findOne({ email })
-        if (existingUser) {
-            return res.status(400).json({
+        const user = await User.findOne({ email: email })
+        if (user) {
+            return res.status(409).json({
                 success: false,
-                message: "User is already registered"
+                message: "User is already registered, Please visit the login page"
             })
         }
 
-        // find the most recent OTP
-        const recentOTP = await Otp.find({ email }).sort({ createdAt: -1 }).limit(1)
-        console.log(recentOTP)
+        // find the recent most otp
+        const recentOtp = await Otp.find({ email: email }).sort({ createdAt: -1 }).limit(1)
 
-        // validate the OTP
-        if (recentOTP.length === 0) {
+        // validation of the otp
+        if (recentOtp.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "Please try for a new OTP"
+                message: "Please send Otp again"
             })
         }
 
-        else if (otp !== recentOTP[0].otp) {
+        else if (otp !== recentOtp[0].otp) {
             return res.status(400).json({
                 success: false,
-                message: "OTP has expired"
+                message: "Otp has expired"
             })
         }
 
-        // hash the password
-        const hashedpassword = await bcrypt.hash(password, 10)
+        // hash the password to store in the db
+        const hashedPassword = await bcrypt.hash(password, 10)
 
-        // create entry in the db on Profile Model (for Additional Details)
+        // create an entry in db for Profile model
         const profileDetails = await Profile.create({
-            gender: null,
-            contactNumber: null,
             about: null,
-            dateOfBirth: null
+            contactNumber: null,
+            dateOfBirth: null,
+            gender: null
         })
 
-        // create entry in the db on User Model (for User)
-        const createdUser = await User.create({
+        // create an entry in db for User model
+        const userDetails = await User.create({
             firstName,
             lastName,
             email,
-            password: hashedpassword,
+            password: hashedPassword,
             accountType,
             additionalDetails: profileDetails._id,
             image: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${firstName} ${lastName}`
         })
 
         // return the response
-        return res.json({
+        return res.status(200).json({
             success: true,
-            message: "User has been registered Successfully"
+            message: "Signed up successfully"
         })
-
     } catch (err) {
-        console.log(err);
-        return res.status(400).json({
-            message: 'Something went wrong while signing up',
+        return res.status(500).json({
             success: false,
+            message: "Something went wrong while signing up",
             error: err.message
-        });
+        })
     }
 }
 
 // Login
 exports.login = async (req, res) => {
     try {
-        // get email and password as data from request body
+        // get email and password from request body (user)
         const { email, password } = req.body
 
         // validation of the data
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
-                message: "Please provide the email and password correctly"
+                message: "Email or Password is invalid"
             })
         }
 
-        // check whether the user exists in the db or not
-        const user = await User.findOne({ email }).populate("additionalDetails")
-
+        // check if the user exists in the db or not
+        const user = await User.findOne({ email: email })
         if (!user) {
             return res.status(400).json({
                 success: false,
-                message: 'User not found'
-            });
-        }
-
-        // compare password
-        const comparepassword = await bcrypt.compare(password, user.password)
-        if (!comparepassword) {
-            return res.status(403).json({
-                success: false,
-                message: "Please enter the correct password"
+                message: "User is not registered yet, Please visit the signup page"
             })
         }
 
-        // create a payload
+        // compare the password with the db password
+        const comparePassword = await bcrypt.compare(password, user.password)
+        if (!comparePassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect Password"
+            })
+        }
+
+        // create a payload for jwt
         const payload = {
             id: user._id,
             email: user.email,
             accountType: user.accountType
         }
 
-        // generate JWT token
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "2h" })
+        // create a jwt token
+        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+            expiresIn: "2h"
+        })
 
-        // remove the password and insert the token in the user object
+        // configuration of user object
         user.token = token
         user.password = undefined
 
-        // creating cookie and sending response
-        const options = {
+        // send the token in the cookie and return the response
+        res.cookie("token", token, {
             httpOnly: true,
             expires: new Date(Date.now() + (3 * 24 * 60 * 60 * 1000))
-        }
+        }).status(200)
+            .json({
+                success: true,
+                message: "Logged in successfully",
+                token,
+                user
+            })
 
-        res.cookie("token", token, options).status(200).json({
-            success: true,
-            token,
-            user,
-            message: "User logged in successfully"
-        })
     } catch (err) {
         return res.status(500).json({
             success: false,
@@ -220,56 +226,54 @@ exports.login = async (req, res) => {
 // Change Password
 exports.changePassword = async (req, res) => {
     try {
-        // get user id from req.user object we passed in the auth middleware
-        const userDetails = await User.findById(req.user.id)
-
-        // get oldPassword, newPassword, confirmNewPassword data from request body
+        // get oldPassword, newPassword and confirmNewPassword from request body
         const { oldPassword, newPassword, confirmNewPassword } = req.body
 
-        // validation of the data
+        // validation of data
         if (!oldPassword || !newPassword || !confirmNewPassword) {
             return res.status(400).json({
                 success: false,
-                message: "Please fill the data properly"
+                message: "Please enter the details properly"
             })
         }
 
-        // comparing the old password (from user and from db)
-        const compareOldPassword = await bcrypt.compare(oldPassword, userDetails.password)
-        if (!compareOldPassword) {
-            return res.status(401).json({
+        // get the user details using the req.user object (passed by auth middleware)
+        const userDetails = await User.findById(req.user.id)
+
+        // check if old password and db password matches or not
+        const comparePassword = await bcrypt.compare(oldPassword, userDetails.password)
+        if (!comparePassword) {
+            return res.status(400).json({
                 success: false,
-                message: "The password is incorrect"
+                message: "Old Password is incorrect"
             })
         }
 
-        // check if newPassword and confirmNewPassword matches or not
+        // check if the new password and confirm new password matches or not
         if (newPassword !== confirmNewPassword) {
             return res.status(400).json({
                 success: false,
-                message: "The password and confirm password does not match",
-            });
+                message: "Incorrect password, please fill the password properly"
+            })
         }
 
-        // updating the password in db
+        // hash the new password
         const newEncryptedPassword = await bcrypt.hash(newPassword, 10)
-        const updatedUserDetails = await User.findByIdAndUpdate(
-            { _id: req.user.id },
-            { password: newEncryptedPassword },
-            { new: true }
-        )
 
-        // send mail for updated password
+        // update the user model in db with the new password
+        const updatedUserDetails = await User.findByIdAndUpdate(
+            { _id: userDetails._id },
+            { password: newEncryptedPassword },
+            { new: true })
+
+        // send the mail of updating the password
         try {
-            const mailResponse = await sendEmail(
-                updatedUserDetails.email,
-                "Change of Password from StudyNotion",
-                updatedPassword(updatedUserDetails.email, `${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`)
-            )
+            const mailResponse = await mailer(userDetails.email, "Change of Password from StudyNotion", updatedPassword(userDetails.email, `${userDetails.firstName} ${userDetails.lastName}`))
         } catch (err) {
             return res.status(500).json({
                 success: false,
-                message: "Error while sending updated password email"
+                message: "Error while sending updated password email",
+                error: err.message
             })
         }
 
