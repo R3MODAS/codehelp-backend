@@ -21,7 +21,7 @@ exports.createCategory = async (req,res) => {
         return res.status(200).json({
             success: true,
             message: "Category is created successfully",
-            category: createdCategory
+            createdCategory
         })
 
 
@@ -44,7 +44,8 @@ exports.showAllCategories = async (req,res) => {
         // return the response
         return res.status(200).json({
             success: true,
-            message: "All Categories is fetched successfully"
+            message: "All Categories is fetched successfully",
+            allCategories
         })
     } catch (err) {
         console.log(err.message);
