@@ -1,15 +1,13 @@
 const mongoose = require("mongoose")
-const { DB_NAME } = require("../constants")
 
 const connectDB = async () => {
-    await mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`)
-    .then(() => {
-        console.log(`MongoDB connected successfully`)
-    })
-    .catch((err) => {
-        console.log(`Failed to connect MongoDB: `,err)
+    try {
+        const connectionInstance = await mongoose.connect(`${process.env.MONGODB_URL}/StudyNotion`)
+        console.log(`MongoDB is connected successfully : ${connectionInstance.connection.host}`);
+    } catch (err) {
+        console.log("MongoDB connection Failed: ", err.message);
         process.exit(1)
-    })
+    }
 }
 
 module.exports = connectDB

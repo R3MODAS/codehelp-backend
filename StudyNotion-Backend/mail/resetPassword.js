@@ -1,5 +1,5 @@
-exports.updatedPassword = (email, name) => {
-	return `<!DOCTYPE html>
+exports.resetPassword = (email, name) => {
+    return `<!DOCTYPE html>
     <html>
     
     <head>

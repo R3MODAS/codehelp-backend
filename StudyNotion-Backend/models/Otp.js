@@ -1,16 +1,19 @@
-const mongoose = require("mongoose")
-const mailer = require("../utils/mailer")
-const verifyEmail = require("../mail/verifyEmail")
+const mongoose = require("mongoose");
+const { mailer } = require("../utils/mailer");
+const { verifyEmail } = require("../mail/verifyEmail")
 
 const otpSchema = new mongoose.Schema({
     otp: {
         type: String,
-        required: true
+        trim: true,
+        required: true,
+        unique: true
     },
     email: {
         type: String,
+        trim: true,
         required: true,
-        trim: true
+        unique: true
     },
     createdAt: {
         type: Date,
@@ -19,25 +22,19 @@ const otpSchema = new mongoose.Schema({
     }
 })
 
-// Send the mail before storing the otp to the db
-async function sendVerificationEmail(email, otp) {
+async function sendVerificationEmail(otp, email) {
     try {
-        const mailResponse = await mailer(email, "Email Verification from Studynotion", verifyEmail(otp))
-        console.log("Email sent successfully: ", mailResponse);
+        await mailer(email, "Email Verification | StudyNotion", verifyEmail(otp))
     } catch (err) {
-        console.error(err)
-        throw new Error(err)
+        console.log(err.message);
     }
 }
 
-otpSchema.pre("save", async function (next) {
+otpSchema.pre("save", async function () {
     if (this.isNew) {
-        await sendVerificationEmail(this.email, this.otp)
+        await sendVerificationEmail(this.otp, this.email)
     }
-    next()
 })
 
 const Otp = mongoose.model("Otp", otpSchema)
 module.exports = Otp
-
-// otpSchema -> otp, email, createdAt (expires)

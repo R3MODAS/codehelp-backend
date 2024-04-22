@@ -1,119 +1,127 @@
-const User = require("../models/User")
-const mailer = require("../utils/mailer")
-const crypto = require("crypto")
 const bcrypt = require("bcrypt")
+const crypto = require('crypto')
+const jwt = require("jsonwebtoken")
+
+const User = require("../models/User")
+const { mailer } = require("../utils/mailer")
+const { resetPassword } = require("../mail/resetPassword")
 
 // Reset Password Token
 exports.resetPasswordToken = async (req, res) => {
     try {
-        // get email from request body (user)
-        const { email } = req.body
+        // get data from the request body
+        const {email} = req.body
 
         // validation of the data
-        if (!email) {
+        if(!email){
             return res.status(400).json({
                 success: false,
-                message: "Invalid Email"
+                message: "Email is required"
             })
         }
 
         // check if the user exists in the db or not
-        const user = await User.findOne({ email: email })
-        if (!user) {
+        const user = await User.findOne({email})
+        if(!user){
             return res.status(400).json({
                 success: false,
-                message: "User is not registered yet, Please visit the signup page"
+                message: "User is not registered"
             })
         }
 
-        // generate a random token using crypto package
+        // generate an unique token
         const token = crypto.randomUUID()
 
-        // update the user model in the db by inserting the token and expiry time for the token
+        // update the token and token expiry of user in db
         await User.findByIdAndUpdate(
-            { _id: user._id },
-            { forgetPasswordToken: token, forgetPasswordTokenExpiry: Date.now() + 5 * 60 * 1000 },
-            { new: true })
+            {_id: user._id},
+            {
+                forgotPasswordToken: token,
+                forgotPasswordTokenExpiry: Date.now() + 5 * 60 * 1000
+            }
+        )
 
-        // create a url for updating the password using the token of specific user
-        const url = `http://localhost:${process.env.PORT}/update-password/${token}`
+        // create an url for the user
+        const url = `http://localhost:${process.env.PORT}/reset-password/${token}`
 
-        // send the url to the user using the mail
-        await mailer(email, "Reset Password from StudyNotion", `Your Link for email verification is ${url}. Please click this url to reset your password.`)
+        // send the mail to the user
+        try{
+           await mailer(email, "Password Reset", `Your Link for email verification is ${url}. Please click this url to reset your password.`)
+        }catch(err){
+            return res.status(400).json({
+                success: false,
+                message: "Failed to send the mail to the user"
+            })
+        }
 
-        //return the response
+        // return the response
         return res.status(200).json({
             success: true,
-            message: "Reset password mail has been sent successfully",
-        });
+            message: "Reset password link sent successfully"
+        })
 
     } catch (err) {
-        console.error(err)
+        console.log(err.message);
         return res.status(500).json({
             success: false,
-            message: "Something went wrong while creating the token for reset password",
+            message: "Something went wrong while sending the reset password link",
             error: err.message
         })
     }
 }
 
 // Reset Password
-exports.resetPassword = async (req, res) => {
-    try {
-        // get password, confirmPassword and token from request body (user)
-        const { password, confirmPassword, token } = req.body
+exports.resetPassword = async (req,res) => {
+    try{
+        // get data from the request body
+        const {password, confirmPassword, token} = req.body
 
         // validation of the data
-        if (!password || !confirmPassword || !token) {
+        if(!password || !confirmPassword || !token){
             return res.status(400).json({
                 success: false,
-                message: "Please fill the details properly"
+                message: "All fields are required"
             })
         }
 
         // check if password and confirm password matches or not
-        if (password !== confirmPassword) {
+        if(password !== confirmPassword){
             return res.status(400).json({
                 success: false,
-                message: "Password and confirm password don't match"
-            });
+                message: "Password and Confirm Password doesn't match"
+            })
         }
 
-        // validation for the token
-        const userDetails = await User.findOne({ forgetPasswordToken: token })
-        if (!userDetails) {
+        // validation of the token
+        const user = await User.findOne(
+            {
+                forgotPasswordToken: token, 
+                forgotPasswordTokenExpiry: {$gt : Date.now()}
+            })
+
+        if(!user){
             return res.status(400).json({
                 success: false,
-                message: "Invalid token"
-            });
+                message: "Invalid Token"
+            })
         }
 
-        // check if the token expiry time has expired or not
-        if (userDetails.forgetPasswordTokenExpiry < Date.now()) {
-            return res.status(400).json({
-                success: false,
-                message: "Token has expired"
-            });
-        }
-
-        // hash the password
-        const newEncryptedPassword = await bcrypt.hash(password, 10)
-
-        // update the user model in db with new password
+        // encrypt the new password and update it on db
+        const newEncryptedPass = await bcrypt.hash(password, 10)
         await User.findByIdAndUpdate(
-            { _id: userDetails._id },
-            { password: newEncryptedPassword },
-            { new: true }
+            {_id: user._id},
+            {password: newEncryptedPass},
+            {new: true}
         )
 
-        //return the response
-        return res.status(200).json({
-            success: true,
-            message: "Password updated successfully"
-        });
+        // send the mail to the user
+        try{
+            await mailer(email, "Password Updated Successfully | StudyNotion", resetPassword(email, `${user.firstName} ${user.lastName}`))
+        }catch(err){
 
-    } catch (err) {
-        console.error(err)
+        }
+
+    }catch(err){
         return res.status(500).json({
             success: false,
             message: "Something went wrong while resetting the password",

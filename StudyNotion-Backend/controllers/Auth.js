@@ -5,123 +5,115 @@ const Profile = require("../models/Profile")
 const otpGenerator = require("otp-generator")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
-
-const mailer = require("../utils/mailer")
-const { updatedPassword } = require("../../StudyNotion-Backend/mail/updatedPassword")
+const { mailer } = require("../utils/mailer")
+const { updatePassword } = require("../mail/updatePassword")
 
 // Send OTP
 exports.sendOtp = async (req, res) => {
     try {
-        // get the email from request body
+        // get data from the request body
         const { email } = req.body
 
-        // validation of the email
+        // validation of the data
         if (!email) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid Email"
+                message: "Email is required"
             })
         }
 
-        // check if the email exists in the db or not
-        const existingUser = await User.findOne({ email: email })
-
-        if (existingUser) {
+        // check if the user already exists in the db or not
+        const user = await User.findOne({ email })
+        if (user) {
             return res.status(400).json({
                 success: false,
-                message: "User is already registered, Please move to the Login page"
+                message: "User is already registered"
             })
         }
 
-        // generate an otp
+        // generate an unique otp
         let otp = otpGenerator.generate(6, {
             lowerCaseAlphabets: false,
             specialChars: false,
             upperCaseAlphabets: false
         })
 
-        // check if the otp is unique or not
-        let result = await Otp.findOne({ otp: otp })
+        // check for unique otp
+        let result = await Otp.findOne({ otp })
         while (result) {
             otp = otpGenerator.generate(6, {
                 lowerCaseAlphabets: false,
                 specialChars: false,
                 upperCaseAlphabets: false
             })
-            result = await Otp.findOne({ otp: otp })
+            result = await Otp.findOne({ otp })
         }
 
-        // create an entry for otp in the db
-        const otpBody = await Otp.create({ otp: otp, email: email })
+        // create an entry for otp in db
+        await Otp.create({ otp, email })
 
         // return the response
         return res.status(200).json({
             success: true,
             message: "Otp sent successfully"
         })
+
     } catch (err) {
-        console.error(err)
+        console.log(err.message);
         return res.status(500).json({
             success: false,
-            message: "Something went wrong while sending the OTP",
+            message: "Something went wrong while sending the otp",
             error: err.message
         })
     }
 }
 
 // Signup
-exports.signup = async (req, res) => {
+exports.Signup = async (req, res) => {
     try {
-        // get the data from request body (user)
-        const { firstName, lastName, email, password, confirmPassword, accountType, contactNumber, otp } = req.body
+        // get data from the request body
+        const { firstName, lastName, email, password, confirmPassword, contactNumber, accountType, otp } = req.body
 
         // validation of the data
-        if (!firstName || !lastName || !email || !password || !confirmPassword || !accountType || !contactNumber || !otp) {
+        if (!firstName || !lastName || !email || !password || !confirmPassword || !contactNumber || !accountType || !otp) {
             return res.status(400).json({
                 success: false,
-                message: "Please fill the details properly"
+                message: "All fields are required"
             })
         }
 
-        // check if the password and confirmPassword matches or not
+        // check if password and confirm password matches or not
         if (password !== confirmPassword) {
             return res.status(400).json({
                 success: false,
-                message: "Password does not match"
+                message: "Password and Confirm Password doesn't match"
             })
         }
 
         // check if the user already exists in the db or not
-        const user = await User.findOne({ email: email })
+        const user = await User.findOne({ email })
         if (user) {
-            return res.status(409).json({
+            return res.status(400).json({
                 success: false,
-                message: "User is already registered, Please visit the login page"
+                message: "User is already registered"
             })
         }
 
-        // find the recent most otp
-        const recentOtp = await Otp.find({ email: email }).sort({ createdAt: -1 }).limit(1)
+        // find the recent otp
+        const recentOtp = await Otp.find({ email }).sort({ createdAt: -1 }).limit(1)
 
         // validation of the otp
-        if (recentOtp.length === 0) {
+        if (recentOtp.length === 0 || otp !== recentOtp[0].otp) {
             return res.status(400).json({
                 success: false,
-                message: "Please send Otp again"
+                message: "Invalid Otp"
             })
         }
 
-        else if (otp !== recentOtp[0].otp) {
-            return res.status(400).json({
-                success: false,
-                message: "Otp has expired"
-            })
-        }
-
-        // hash the password to store in the db
+        // hash the password
         const hashedPassword = await bcrypt.hash(password, 10)
 
-        // create an entry in db for Profile model
+        // create an entry for profile in db
         const profileDetails = await Profile.create({
             about: null,
             contactNumber: null,
@@ -129,7 +121,7 @@ exports.signup = async (req, res) => {
             gender: null
         })
 
-        // create an entry in db for User model
+        // create an entry for user in db
         const userDetails = await User.create({
             firstName,
             lastName,
@@ -137,47 +129,53 @@ exports.signup = async (req, res) => {
             password: hashedPassword,
             accountType,
             additionalDetails: profileDetails._id,
-            image: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${firstName} ${lastName}`
+            image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`
         })
+
+        // excluded the password before sending it on response
+        userDetails.password = undefined
 
         // return the response
         return res.status(200).json({
             success: true,
-            message: "Signed up successfully"
+            message: "User is registered successfully",
+            userDetails
         })
-    } catch (err) {
+    }
+    catch (err) {
+        console.log(err.message);
         return res.status(500).json({
             success: false,
-            message: "Something went wrong while signing up",
+            message: "Something went wrong while registering the user",
             error: err.message
         })
     }
 }
 
 // Login
-exports.login = async (req, res) => {
+exports.Login = async (req, res) => {
     try {
-        // get email and password from request body (user)
+        // get data from the request body
         const { email, password } = req.body
 
         // validation of the data
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
-                message: "Email or Password is invalid"
+                message: "All fields are required"
             })
         }
 
         // check if the user exists in the db or not
-        const user = await User.findOne({ email: email })
+        const user = await User.findOne({ email })
         if (!user) {
             return res.status(400).json({
                 success: false,
-                message: "User is not registered yet, Please visit the signup page"
+                message: "User is not registered"
             })
         }
 
-        // compare the password with the db password
+        // compare the user password and db password
         const comparePassword = await bcrypt.compare(password, user.password)
         if (!comparePassword) {
             return res.status(400).json({
@@ -186,38 +184,42 @@ exports.login = async (req, res) => {
             })
         }
 
-        // create a payload for jwt
-        const payload = {
-            id: user._id,
-            email: user.email,
-            accountType: user.accountType
-        }
+        // generate a jwt token
+        const token = jwt.sign(
+            {
+                id: user._id,
+                email: user.email,
+                accountType: user.accountType
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "2h"
+            }
+        )
 
-        // create a jwt token
-        const token = jwt.sign(payload, process.env.JWT_SECRET, {
-            expiresIn: "2h"
-        })
-
-        // configuration of user object
+        // Add the token and remove the password
         user.token = token
         user.password = undefined
 
-        // send the token in the cookie and return the response
+        // create a cookie and return the response
         res.cookie("token", token, {
             httpOnly: true,
-            expires: new Date(Date.now() + (3 * 24 * 60 * 60 * 1000))
-        }).status(200)
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        })
+            .status(200)
             .json({
                 success: true,
-                message: "Logged in successfully",
+                message: "User logged in successfully",
                 token,
                 user
             })
 
-    } catch (err) {
+    }
+    catch (err) {
+        console.log(err.message);
         return res.status(500).json({
             success: false,
-            message: "Error while Logging in",
+            message: "Something went wrong while sending the otp",
             error: err.message
         })
     }
@@ -226,68 +228,66 @@ exports.login = async (req, res) => {
 // Change Password
 exports.changePassword = async (req, res) => {
     try {
-        // get oldPassword, newPassword and confirmNewPassword from request body
+        // get the user id from req.user (passed by auth middleware) and get the user details
+        const userDetails = await User.findById(req.user.id)
+
+        // get data from the request body
         const { oldPassword, newPassword, confirmNewPassword } = req.body
 
-        // validation of data
+        // validation of the data
         if (!oldPassword || !newPassword || !confirmNewPassword) {
             return res.status(400).json({
                 success: false,
-                message: "Please enter the details properly"
+                message: "All fields are required"
             })
         }
 
-        // get the user details using the req.user object (passed by auth middleware)
-        const userDetails = await User.findById(req.user.id)
+        // check if new password and confirm new password matches or not
+        if (newPassword !== confirmNewPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and Confirm new password doesn't match"
+            })
+        }
 
-        // check if old password and db password matches or not
+        // compare the user password and db password
         const comparePassword = await bcrypt.compare(oldPassword, userDetails.password)
         if (!comparePassword) {
             return res.status(400).json({
                 success: false,
-                message: "Old Password is incorrect"
+                message: "Incorrect password"
             })
         }
 
-        // check if the new password and confirm new password matches or not
-        if (newPassword !== confirmNewPassword) {
+        // encrypt the new password and update it on db
+        const newEncryptedPass = await bcrypt.hash(newPassword, 10)
+        await User.findByIdAndUpdate(
+            { _id: userDetails._id },
+            { password: newEncryptedPass },
+            { new: true }
+        )
+
+        // send the mail to the user 
+        try {
+            await mailer(userDetails.email, "Password Changed Successfully | StudyNotion", updatePassword(userDetails.email, `${userDetails.firstName} ${userDetails.lastName}`))
+        } catch (err) {
             return res.status(400).json({
                 success: false,
-                message: "Incorrect password, please fill the password properly"
+                message: "Failed to send the mail to the user"
             })
         }
 
-        // hash the new password
-        const newEncryptedPassword = await bcrypt.hash(newPassword, 10)
-
-        // update the user model in db with the new password
-        const updatedUserDetails = await User.findByIdAndUpdate(
-            { _id: userDetails._id },
-            { password: newEncryptedPassword },
-            { new: true })
-
-        // send the mail of updating the password
-        try {
-            const mailResponse = await mailer(userDetails.email, "Change of Password from StudyNotion", updatedPassword(userDetails.email, `${userDetails.firstName} ${userDetails.lastName}`))
-        } catch (err) {
-            return res.status(500).json({
-                success: false,
-                message: "Error while sending updated password email",
-                error: err.message
-            })
-        }
-
-        // returning response
+        // return the response
         return res.status(200).json({
             success: true,
-            message: "Password updated successfully"
-        });
+            message: "Changed password successfully"
+        })
 
     } catch (err) {
-        console.log(err);
+        console.log(err.message);
         return res.status(500).json({
             success: false,
-            message: "Error while changing password!",
+            message: "Something went wrong while changing the password",
             error: err.message
         })
     }

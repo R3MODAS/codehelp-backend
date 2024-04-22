@@ -1,4 +1,4 @@
-const verifyEmail = (otp) => {
+exports.verifyEmail = (otp) => {
 	return `<!DOCTYPE html>
 	<html>
 	
@@ -84,5 +84,3 @@ const verifyEmail = (otp) => {
 	
 	</html>`;
 };
-
-module.exports = verifyEmail;

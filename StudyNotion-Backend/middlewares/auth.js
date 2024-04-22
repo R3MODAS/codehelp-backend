@@ -1,41 +1,39 @@
-const User = require("../models/User")
 const jwt = require("jsonwebtoken")
 
 // Auth
-exports.auth = async (req, res, next) => {
-    try {
-        // get the token from request body / cookies / req header
-        const token = req.body.token || req.cookies.token || req.header("Authorization").replace("Bearer ", "")
+exports.auth = async (req,res,next) => {
+    try{
+        // get the token
+        const token = req.cookies.token
 
         // validation of the token
-        if (!token || token === undefined) {
+        if(!token){
             return res.status(400).json({
                 success: false,
-                message: "Token is missing"
+                message: "Token is required"
             })
         }
 
-        try {
-            // decode the payload of jwt
+        try{
+            // decode the payload
             const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-            // pass the decoded value inside the req.user
+            // send the value to req.user
             req.user = decoded
-
-        } catch (err) {
-            return res.status(401).json({
+        }catch(err){
+            return res.status(400).json({
                 success: false,
-                message: "Invalid Token"
-            });
+                message: "Failed to decode the payload"
+            })
         }
-
-        // move to the next handler function
         next()
-    } catch (err) {
+    }catch(err){
+        console.log(err.message);
         return res.status(500).json({
             success: false,
-            message: "Error while Authorization"
-        });
+            message: "Something went wrong while authorizing the user",
+            error: err.message
+        })
     }
 }
 
@@ -45,33 +43,16 @@ exports.isStudent = async (req,res,next) => {
         if(req.user.accountType !== "Student"){
             return res.status(400).json({
                 success: false,
-                message: "You are not a Student"
+                message: "Failed to Authorize as Student"
             })
         }
-        next()
-    }catch (err) {
+    }catch(err){
+        console.log(err.message);
         return res.status(500).json({
             success: false,
-            message: "Error while Authorizing as Student"
-        });
-    }
-}
-
-// Instructor
-exports.isInstructor = async (req,res,next) => {
-    try{
-        if(req.user.accountType !== "Instructor"){
-            return res.status(400).json({
-                success: false,
-                message: "You are not an Instructor"
-            })
-        }
-        next()
-    }catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Error while Authorizing as Instructor"
-        });
+            message: "Something went wrong while authorizing as a student",
+            error: err.message
+        })
     }
 }
 
@@ -81,14 +62,34 @@ exports.isAdmin = async (req,res,next) => {
         if(req.user.accountType !== "Admin"){
             return res.status(400).json({
                 success: false,
-                message: "You are not an Admin"
+                message: "Failed to Authorize as Admin"
             })
         }
-        next()
-    }catch (err) {
+    }catch(err){
+        console.log(err.message);
         return res.status(500).json({
             success: false,
-            message: "Error while Authorizing as Admin"
-        });
+            message: "Something went wrong while authorizing as admin",
+            error: err.message
+        })
+    }
+}
+
+// Instructor
+exports.isInstructor = async (req,res,next) => {
+    try{
+        if(req.user.accountType !== "Instructor"){
+            return res.status(400).json({
+                success: false,
+                message: "Failed to Authorize as Instructor"
+            })
+        }
+    }catch(err){
+        console.log(err.message);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong while authorizing as instructor",
+            error: err.message
+        })
     }
 }
