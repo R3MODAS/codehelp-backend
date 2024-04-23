@@ -3,7 +3,7 @@ const Category = require("../models/Category")
 // Create Category
 exports.createCategory = async (req,res) => {
     try {
-        // get data from the request body
+        // get data from request body
         const {name, description} = req.body
 
         // validation of the data

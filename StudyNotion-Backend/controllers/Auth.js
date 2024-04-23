@@ -11,7 +11,7 @@ const { updatePassword } = require("../mail/updatePassword")
 // Send OTP
 exports.sendOtp = async (req, res) => {
     try {
-        // get data from the request body
+        // get data from request body
         const { email } = req.body
 
         // validation of the data
@@ -71,7 +71,7 @@ exports.sendOtp = async (req, res) => {
 // Signup
 exports.Signup = async (req, res) => {
     try {
-        // get data from the request body
+        // get data from request body
         const { firstName, lastName, email, password, confirmPassword, contactNumber, accountType, otp } = req.body
 
         // validation of the data
@@ -155,7 +155,7 @@ exports.Signup = async (req, res) => {
 // Login
 exports.Login = async (req, res) => {
     try {
-        // get data from the request body
+        // get data from request body
         const { email, password } = req.body
 
         // validation of the data
@@ -231,7 +231,7 @@ exports.changePassword = async (req, res) => {
         // get the user id from req.user (passed by auth middleware) and get the user details
         const userDetails = await User.findById(req.user.id)
 
-        // get data from the request body
+        // get data from request body
         const { oldPassword, newPassword, confirmNewPassword } = req.body
 
         // validation of the data

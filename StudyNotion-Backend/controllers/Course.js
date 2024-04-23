@@ -6,7 +6,7 @@ const { cloudinaryUploader } = require("../utils/cloudinaryUploader")
 // Create Course
 exports.createCourse = async (req, res) => {
     try {
-        // get data from the request body
+        // get data from request body
         const { courseName, courseDescription, price, whatYouWillLearn, category } = req.body
 
         // get the thumbnail from request files

@@ -9,7 +9,7 @@ const { resetPassword } = require("../mail/resetPassword")
 // Reset Password Token
 exports.resetPasswordToken = async (req, res) => {
     try {
-        // get data from the request body
+        // get data from request body
         const {email} = req.body
 
         // validation of the data
@@ -73,7 +73,7 @@ exports.resetPasswordToken = async (req, res) => {
 // Reset Password
 exports.resetPassword = async (req,res) => {
     try{
-        // get data from the request body
+        // get data from request body
         const {password, confirmPassword, token} = req.body
 
         // validation of the data
